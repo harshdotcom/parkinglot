@@ -2,18 +2,22 @@ package main
 
 import (
 	"harshdotcom/parkinglot/handlers"
+	"harshdotcom/parkinglot/service"
+	"harshdotcom/parkinglot/storage"
+	"log"
 	"net/http"
 )
 
 const (
-	port = ":9090"
+	port = ":8080"
 )
 
 func main() {
-	http.HandleFunc("/park", handlers.ParkVehicle)
-	http.HandleFunc("/leave", handlers.LeaveVehicle)
-	http.HandleFunc("/status", handlers.GetStatus)
-	http.HandleFunc("/users", handlers.CreateUser)
+	repo := storage.NewMemorySlotRepository()
+	service := service.NewParkingService(repo)
+	handler := handlers.NewParkingHandler(service)
+	http.HandleFunc("/assign", handler.AssignSlot)
 
-	http.ListenAndServe(port, nil)
+	log.Println("Server running on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
